@@ -882,14 +882,26 @@
         }
 
         async function doDownload(url) {
-            // Trên GitHub Pages (Tĩnh), không có Proxy để ép tải file.
-            // Ta sẽ mở video trong tab mới để người dùng lưu (Save As...) hoặc dùng download attribute
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.download = 'tikdown_video.mp4'; // Có thể bị trình duyệt chặn nếu khác domain
-            a.click();
-            showToast('Đang mở link tải...');
+            showToast('Đang khởi tạo tải xuống...');
+            try {
+                // Thử tải qua blob để ép trình duyệt lưu file (Work on some browsers/CDNs)
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error();
+                const blob = await resp.blob();
+                const objUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = objUrl;
+                a.download = `TikDown_${Date.now()}.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(objUrl);
+                showToast('Tải xuống thành công!');
+            } catch (err) {
+                // Nếu bị chặn CORS (thường thấy ở GitHub Pages), mở link trực tiếp
+                window.open(url, '_blank');
+                showToast('Vui lòng chuột phải -> Lưu video', '#3b82f6');
+            }
         }
 
         function setLoading(on) {
