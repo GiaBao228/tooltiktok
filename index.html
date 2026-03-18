@@ -7,6 +7,9 @@
     <title>TikDown - Premium TikTok Downloader</title>
     <meta name="description" content="Tải video TikTok không logo chất lượng cao, nhanh chóng và hoàn toàn miễn phí.">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="https://www.tiktok.com/favicon.ico">
+
     <!-- Google Fonts: Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -542,14 +545,34 @@
         }
 
         @media (max-width: 600px) {
-            header { padding: 16px 0; }
-            .logo { font-size: 1.5rem; }
-            .nav-links { display: none; }
-            .container { padding: 0 16px; }
+            header {
+                padding: 16px 0;
+            }
 
-            .hero { padding: 40px 0; }
-            .hero h1 { font-size: 2.2rem; }
-            .hero p { font-size: 1rem; margin-bottom: 32px; }
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                padding: 0 16px;
+            }
+
+            .hero {
+                padding: 40px 0;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+                margin-bottom: 32px;
+            }
 
             .input-group {
                 border-radius: 20px;
@@ -558,15 +581,17 @@
                 padding: 12px;
                 background: rgba(255, 255, 255, 0.06);
             }
-            .input-group input { 
-                padding: 12px; 
+
+            .input-group input {
+                padding: 12px;
                 text-align: center;
                 font-size: 1rem;
             }
-            .input-group button { 
-                width: 100%; 
+
+            .input-group button {
+                width: 100%;
                 padding: 16px;
-                justify-content: center; 
+                justify-content: center;
                 border-radius: 12px;
             }
 
@@ -574,13 +599,28 @@
                 padding: 24px 16px;
                 border-radius: 24px;
             }
-            .video-title { font-size: 1.1rem; }
-            .stat-item span { font-size: 1rem; }
-            .btn-dl { padding: 16px; font-size: 0.95rem; }
-            
-            .features { padding: 60px 0; }
-            .feature-card { padding: 30px 20px; }
-            
+
+            .video-title {
+                font-size: 1.1rem;
+            }
+
+            .stat-item span {
+                font-size: 1rem;
+            }
+
+            .btn-dl {
+                padding: 16px;
+                font-size: 0.95rem;
+            }
+
+            .features {
+                padding: 60px 0;
+            }
+
+            .feature-card {
+                padding: 30px 20px;
+            }
+
             #toast {
                 left: 16px;
                 right: 16px;
@@ -668,7 +708,8 @@
                         <button class="btn-dl btn-video" id="btnDlVideo">
                             <i class="fa-solid fa-download"></i> Tải Video MP4
                         </button>
-                        <button class="btn-dl btn-video" id="btnDlVideoHD" style="display: none; background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);">
+                        <button class="btn-dl btn-video" id="btnDlVideoHD"
+                            style="display: none; background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);">
                             <i class="fa-solid fa-star"></i> Tải Video Full HD
                         </button>
                         <button class="btn-dl btn-music" id="btnDlMusic">
@@ -717,7 +758,8 @@
 
     <div id="toast">Thông báo</div>
 
-    <canvas id="snowCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;"></canvas>
+    <canvas id="snowCanvas"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;"></canvas>
 
     <script>
         // ── Snowfall Effect ──
@@ -748,7 +790,7 @@
             for (let flake of snowflakes) {
                 ctx.moveTo(flake.x, flake.y);
                 ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
-                
+
                 flake.y += flake.speedY;
                 flake.x += flake.speedX;
                 if (flake.y > height) flake.y = -5;
@@ -763,7 +805,7 @@
         initSnow();
         drawSnow();
 
-        const API_BASE = window.location.origin;
+        const API_BASE = "https://www.tikwm.com/api/"; // Dùng trực tiếp API của TikWM
 
         function showToast(msg, color = 'var(--green)') {
             const t = document.getElementById('toast');
@@ -781,11 +823,28 @@
             hideResult();
 
             try {
-                const res = await fetch(`${API_BASE}/api/info?url=${encodeURIComponent(url)}`);
+                // Gọi thẳng tới TikWM API (Hỗ trợ CORS)
+                const res = await fetch(`${API_BASE}?url=${encodeURIComponent(url)}`);
                 const data = await res.json();
 
-                if (!data.ok) throw new Error(data.message);
-                renderResult(data);
+                if (data.code !== 0 || !data.data) throw new Error(data.msg || 'Không thể phân tích video');
+
+                const v = data.data;
+                renderResult({
+                    id: v.id,
+                    title: v.title,
+                    cover: v.cover,
+                    author: {
+                        nickname: v.author.nickname,
+                        avatar: v.author.avatar
+                    },
+                    like_count: v.digg_count,
+                    play_count: v.play_count,
+                    share_count: v.share_count,
+                    play_url: v.play,
+                    hd_play_url: v.hdplay,
+                    music_url: v.music
+                });
             } catch (err) {
                 showToast(err.message, '#f87171');
             } finally {
@@ -796,7 +855,7 @@
         function renderResult(v) {
             document.getElementById('rAvatar').src = v.author?.avatar || '';
             document.getElementById('rAuthor').textContent = v.author?.nickname || 'Tác giả';
-            document.getElementById('rNick').textContent = '@tiktok_user'; // API limited nick
+            document.getElementById('rNick').textContent = '@tiktok_user';
             document.getElementById('rTitle').textContent = v.title || 'Video không tiêu đề';
 
             document.getElementById('sLikes').textContent = fmt(v.like_count);
@@ -806,53 +865,31 @@
             const video = document.getElementById('vPreview');
             video.src = v.play_url;
 
-            document.getElementById('btnDlVideo').onclick = () => doDownload(
-                `${API_BASE}/api/download?url=${encodeURIComponent(v.play_url)}&filename=TikDown_${v.id}`,
-                `TikDown_${v.id}.mp4`, 'btnDlVideo'
-            );
+            document.getElementById('btnDlVideo').onclick = () => doDownload(v.play_url);
 
             const btnHd = document.getElementById('btnDlVideoHD');
             if (v.hd_play_url) {
                 btnHd.style.display = 'flex';
-                btnHd.onclick = () => doDownload(
-                    `${API_BASE}/api/download?url=${encodeURIComponent(v.hd_play_url)}&filename=TikDown_HD_${v.id}`,
-                    `TikDown_HD_${v.id}.mp4`, 'btnDlVideoHD'
-                );
+                btnHd.onclick = () => doDownload(v.hd_play_url);
             } else {
                 btnHd.style.display = 'none';
             }
 
-            document.getElementById('btnDlMusic').onclick = () => doDownload(
-                `${API_BASE}/api/download?url=${encodeURIComponent(v.music_url)}&filename=TikDown_audio_${v.id}`,
-                `TikDown_audio_${v.id}.mp3`, 'btnDlMusic'
-            );
+            document.getElementById('btnDlMusic').onclick = () => doDownload(v.music_url);
 
             document.getElementById('resultBox').style.display = 'block';
             document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth' });
         }
 
-        async function doDownload(url, filename, btnId) {
-            const btn = document.getElementById(btnId);
-            const original = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
-
-            try {
-                const resp = await fetch(url);
-                const blob = await resp.blob();
-                const objUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = objUrl;
-                a.download = filename;
-                a.click();
-                showToast('Tải xuống thành công!');
-                URL.revokeObjectURL(objUrl);
-            } catch (err) {
-                showToast('Lỗi khi tải file', '#f87171');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = original;
-            }
+        async function doDownload(url) {
+            // Trên GitHub Pages (Tĩnh), không có Proxy để ép tải file.
+            // Ta sẽ mở video trong tab mới để người dùng lưu (Save As...) hoặc dùng download attribute
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.download = 'tikdown_video.mp4'; // Có thể bị trình duyệt chặn nếu khác domain
+            a.click();
+            showToast('Đang mở link tải...');
         }
 
         function setLoading(on) {
